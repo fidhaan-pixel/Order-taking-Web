@@ -1,0 +1,667 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Order System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --gold:#C9A84C;--gold-light:#F0D080;--gold-dark:#8B6914;
+    --dark:#0D0D0D;--dark2:#1A1A1A;--dark3:#252525;--dark4:#333;
+    --text:#F5F0E8;--text2:#B8A98A;--text3:#7A6E5F;
+    --green:#2ECC71;--red:#E74C3C;--blue:#3498DB;--orange:#E67E22;
+    --border:rgba(201,168,76,0.2);
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;overflow-x:hidden}
+  
+  /* LOGIN */
+  .login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--dark);position:relative;overflow:hidden}
+  .login-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(201,168,76,0.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(201,168,76,0.04) 0%,transparent 50%);pointer-events:none}
+  .login-logo{font-family:'Playfair Display',serif;font-size:42px;color:var(--gold);letter-spacing:2px;margin-bottom:8px;text-align:center}
+  .login-sub{color:var(--text3);font-size:13px;letter-spacing:4px;text-transform:uppercase;margin-bottom:60px}
+  .login-cards{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;padding:0 24px}
+  .login-card{background:var(--dark2);border:0.5px solid var(--border);border-radius:16px;padding:40px 32px;text-align:center;cursor:pointer;transition:all 0.3s;min-width:200px;position:relative;overflow:hidden}
+  .login-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,0.05),transparent);opacity:0;transition:opacity 0.3s}
+  .login-card:hover{border-color:var(--gold);transform:translateY(-4px)}
+  .login-card:hover::before{opacity:1}
+  .login-icon{font-size:36px;margin-bottom:16px}
+  .login-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold);margin-bottom:8px}
+  .login-desc{font-size:12px;color:var(--text3);line-height:1.6}
+  .divider-line{width:60px;height:1px;background:var(--border);margin:8px auto}
+
+  /* TOP BAR */
+  .topbar{background:var(--dark2);border-bottom:0.5px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .topbar-logo{font-family:'Playfair Display',serif;color:var(--gold);font-size:20px;letter-spacing:1px}
+  .topbar-role{font-size:11px;color:var(--text3);letter-spacing:3px;text-transform:uppercase;margin-top:2px}
+  .topbar-right{display:flex;align-items:center;gap:16px}
+  .btn-logout{background:transparent;border:0.5px solid var(--border);color:var(--text3);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:12px;letter-spacing:1px;transition:all 0.2s}
+  .btn-logout:hover{border-color:var(--red);color:var(--red)}
+  .badge{background:var(--red);color:white;font-size:10px;border-radius:999px;padding:2px 7px;font-weight:600;min-width:18px;text-align:center}
+
+  /* STAFF PAGE */
+  .page-wrap{padding:24px;max-width:1400px;margin:0 auto}
+  .page-title{font-family:'Playfair Display',serif;font-size:28px;color:var(--gold);margin-bottom:4px}
+  .page-sub{font-size:12px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:28px}
+  .tables-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:32px}
+  .table-card{background:var(--dark2);border:0.5px solid var(--border);border-radius:12px;padding:20px 16px;text-align:center;cursor:pointer;transition:all 0.25s}
+  .table-card:hover{border-color:var(--gold);background:var(--dark3)}
+  .table-card.has-order{border-color:var(--orange);background:rgba(230,126,34,0.06)}
+  .table-card.ready{border-color:var(--green);background:rgba(46,204,113,0.06)}
+  .table-num{font-family:'Playfair Display',serif;font-size:28px;color:var(--gold);margin-bottom:6px}
+  .table-status{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+  .table-status.active{color:var(--orange)}
+  .table-status.ready{color:var(--green)}
+  .table-items{font-size:12px;color:var(--text2);margin-top:6px}
+
+  /* ORDER PANEL */
+  .order-panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+  .order-panel{background:var(--dark2);border-top:0.5px solid var(--border);border-radius:24px 24px 0 0;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:28px 24px}
+  .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+  .panel-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold)}
+  .btn-close{background:var(--dark3);border:none;color:var(--text2);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+  .btn-close:hover{background:var(--red);color:white}
+  .menu-categories{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .cat-btn{background:var(--dark3);border:0.5px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:999px;cursor:pointer;font-size:12px;letter-spacing:1px;transition:all 0.2s}
+  .cat-btn.active{background:var(--gold);border-color:var(--gold);color:var(--dark)}
+  .menu-items{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+  .menu-item{background:var(--dark3);border:0.5px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all 0.2s;position:relative}
+  .menu-item:hover{border-color:var(--gold)}
+  .menu-item-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+  .menu-item-price{font-size:12px;color:var(--gold)}
+  .menu-item-cat{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .order-list{margin-bottom:20px}
+  .order-list-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px;border-top:0.5px solid var(--border);padding-top:16px}
+  .order-item-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.04)}
+  .order-item-name{font-size:13px;color:var(--text)}
+  .order-item-qty{display:flex;align-items:center;gap:10px}
+  .qty-btn{background:var(--dark3);border:0.5px solid var(--border);color:var(--text2);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+  .qty-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .qty-num{font-size:14px;font-weight:500;min-width:20px;text-align:center}
+  .order-total{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-top:0.5px solid var(--border);margin-bottom:16px}
+  .order-total-label{font-size:12px;color:var(--text3);letter-spacing:2px;text-transform:uppercase}
+  .order-total-amt{font-family:'Playfair Display',serif;font-size:24px;color:var(--gold)}
+  .btn-primary{background:var(--gold);color:var(--dark);border:none;padding:14px 28px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;width:100%;letter-spacing:1px;transition:all 0.2s}
+  .btn-primary:hover{background:var(--gold-light)}
+  .btn-primary:disabled{opacity:0.4;cursor:not-allowed}
+  .note-input{background:var(--dark3);border:0.5px solid var(--border);border-radius:8px;color:var(--text);padding:10px 14px;width:100%;font-family:'DM Sans',sans-serif;font-size:13px;margin-bottom:16px;outline:none;resize:none}
+  .note-input:focus{border-color:var(--gold)}
+
+  /* KITCHEN PAGE */
+  .kitchen-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+  .kitchen-card{background:var(--dark2);border:0.5px solid var(--border);border-radius:14px;overflow:hidden}
+  .kitchen-card-header{background:var(--dark3);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid var(--border)}
+  .kitchen-table-num{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold)}
+  .kitchen-time{font-size:11px;color:var(--text3)}
+  .kitchen-items{padding:14px 18px}
+  .kitchen-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,0.04)}
+  .kitchen-item:last-child{border-bottom:none}
+  .kitchen-qty{background:var(--gold);color:var(--dark);font-size:11px;font-weight:700;min-width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+  .kitchen-item-name{font-size:13px;color:var(--text);flex:1}
+  .kitchen-item-cat{font-size:10px;color:var(--text3);letter-spacing:1px}
+  .kitchen-footer{padding:12px 18px;background:var(--dark3);border-top:0.5px solid var(--border)}
+  .btn-ready{background:transparent;border:0.5px solid var(--green);color:var(--green);padding:10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;width:100%;letter-spacing:1px;transition:all 0.2s}
+  .btn-ready:hover{background:var(--green);color:var(--dark)}
+  .kitchen-note{font-size:11px;color:var(--text3);font-style:italic;padding:8px 18px;border-bottom:0.5px solid rgba(255,255,255,0.04)}
+  .empty-state{text-align:center;padding:60px 24px;color:var(--text3)}
+  .empty-icon{font-size:48px;margin-bottom:16px;opacity:0.4}
+  .empty-text{font-size:14px;letter-spacing:1px}
+  .status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:10px;letter-spacing:1px;text-transform:uppercase}
+  .status-pill.pending{background:rgba(230,126,34,0.15);color:var(--orange);border:0.5px solid rgba(230,126,34,0.3)}
+  .status-pill.ready{background:rgba(46,204,113,0.15);color:var(--green);border:0.5px solid rgba(46,204,113,0.3)}
+
+  /* ADMIN PAGE */
+  .admin-tabs{display:flex;gap:0;margin-bottom:28px;border-bottom:0.5px solid var(--border)}
+  .admin-tab{background:transparent;border:none;color:var(--text3);padding:12px 20px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;letter-spacing:1px;border-bottom:2px solid transparent;margin-bottom:-0.5px;transition:all 0.2s}
+  .admin-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .menu-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+  .menu-edit-card{background:var(--dark2);border:0.5px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;justify-content:space-between}
+  .menu-edit-info{flex:1}
+  .menu-edit-name{font-size:14px;font-weight:500;color:var(--text);margin-bottom:2px}
+  .menu-edit-meta{font-size:12px;color:var(--text3)}
+  .menu-edit-actions{display:flex;gap:8px}
+  .btn-icon{background:var(--dark3);border:0.5px solid var(--border);color:var(--text2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+  .btn-icon:hover{border-color:var(--gold);color:var(--gold)}
+  .btn-icon.danger:hover{border-color:var(--red);color:var(--red)}
+  .section-label{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+  .btn-add{background:transparent;border:0.5px solid var(--gold);color:var(--gold);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;letter-spacing:1px;transition:all 0.2s;font-family:'DM Sans',sans-serif}
+  .btn-add:hover{background:var(--gold);color:var(--dark)}
+  .add-item-form{background:var(--dark2);border:0.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .form-input{background:var(--dark3);border:0.5px solid var(--border);border-radius:8px;color:var(--text);padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:100%;transition:border-color 0.2s}
+  .form-input:focus{border-color:var(--gold)}
+  .form-label{font-size:11px;color:var(--text3);letter-spacing:1px;margin-bottom:6px;display:block}
+  .form-select{background:var(--dark3);border:0.5px solid var(--border);border-radius:8px;color:var(--text);padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:100%;appearance:none;cursor:pointer}
+  .orders-table{width:100%;border-collapse:collapse}
+  .orders-table th{text-align:left;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:10px 14px;border-bottom:0.5px solid var(--border);font-weight:400}
+  .orders-table td{padding:12px 14px;border-bottom:0.5px solid rgba(255,255,255,0.04);font-size:13px;color:var(--text2);vertical-align:middle}
+  .orders-table tr:last-child td{border-bottom:none}
+  .amount-text{font-family:'Playfair Display',serif;color:var(--gold);font-size:15px}
+  .filter-bar{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+  .filter-btn{background:var(--dark3);border:0.5px solid var(--border);color:var(--text2);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:12px;letter-spacing:1px;transition:all 0.2s;font-family:'DM Sans',sans-serif}
+  .filter-btn.active{background:var(--gold);border-color:var(--gold);color:var(--dark)}
+  .stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px}
+  .stat-card{background:var(--dark2);border:0.5px solid var(--border);border-radius:12px;padding:18px;text-align:center}
+  .stat-val{font-family:'Playfair Display',serif;font-size:28px;color:var(--gold);margin-bottom:4px}
+  .stat-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--dark2);border:0.5px solid var(--gold);border-radius:10px;padding:12px 20px;font-size:13px;color:var(--gold);z-index:9999;transition:opacity 0.3s;pointer-events:none}
+  @media(max-width:600px){.menu-edit-grid{grid-template-columns:1fr}.menu-items{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.login-cards{flex-direction:column}.stat-cards{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+const MENU = [
+  {id:1,name:'Club Sandwich',price:320,cat:'Starters'},
+  {id:2,name:'Prawn Cocktail',price:450,cat:'Starters'},
+  {id:3,name:'Veg Spring Rolls',price:280,cat:'Starters'},
+  {id:4,name:'Caesar Salad',price:360,cat:'Starters'},
+  {id:5,name:'Butter Chicken',price:520,cat:'Mains'},
+  {id:6,name:'Grilled Sea Bass',price:680,cat:'Mains'},
+  {id:7,name:'Paneer Tikka Masala',price:480,cat:'Mains'},
+  {id:8,name:'Lamb Rogan Josh',price:580,cat:'Mains'},
+  {id:9,name:'Steamed Rice',price:120,cat:'Sides'},
+  {id:10,name:'Garlic Naan',price:80,cat:'Sides'},
+  {id:11,name:'Mango Lassi',price:160,cat:'Drinks'},
+  {id:12,name:'Masala Chai',price:100,cat:'Drinks'},
+  {id:13,name:'Gulab Jamun',price:200,cat:'Desserts'},
+  {id:14,name:'Chocolate Lava Cake',price:320,cat:'Desserts'},
+];
+
+const TABLES = Array.from({length:12},(_,i)=>i+1);
+const CATS = ['All','Starters','Mains','Sides','Drinks','Desserts'];
+
+let state =
+{
+  page:'login',
+  role:null,
+  orders:{}, // tableNum -> {items:[{id,name,price,qty}], status:'pending'|'ready', time, note}
+  menu:[...MENU],
+  orderPanel:null, // table number open
+  activeCat:'All',
+  cartItems:{},
+  cartNote:'',
+  adminTab:'menu',
+  adminFilter:'all',
+  showAddForm:false,
+  newItem:{name:'',price:'',cat:'Starters'},
+  editItem:null,
+  toast:null,
+  
+
+};
+async function loadOrders(){
+  const res = await fetch('http://localhost:5000/orders');
+  const data = await res.json();
+
+  state.orders = {};
+  data.forEach(o=>{
+    state.orders[o.table] = o;
+  });
+
+  render();
+}
+
+function render(){
+  const app=document.getElementById('app');
+  if(state.page==='login') app.innerHTML=renderLogin();
+  else if(state.page==='staff') app.innerHTML=renderStaff();
+  else if(state.page==='kitchen') app.innerHTML=renderKitchen();
+  else if(state.page==='admin') app.innerHTML=renderAdmin();
+  bindEvents();
+  if(state.orderPanel!==null) bindPanelEvents();
+  showToastIfAny();
+}
+
+function renderLogin(){
+  return `<div class="login-screen">
+    <div class="login-bg"></div>
+    <div class="login-logo">The Grand</div>
+    <div class="login-sub">Hotel Management System</div>
+    <div class="login-cards">
+      <div class="login-card" data-role="staff">
+        <div class="login-icon">🍽️</div>
+        <div class="login-title">Staff</div>
+        <div class="divider-line"></div>
+        <div class="login-desc">Take table orders<br>& manage requests</div>
+      </div>
+      <div class="login-card" data-role="kitchen">
+        <div class="login-icon">👨‍🍳</div>
+        <div class="login-title">Kitchen</div>
+        <div class="divider-line"></div>
+        <div class="login-desc">View & prepare<br>incoming orders</div>
+      </div>
+      <div class="login-card" data-role="admin">
+        <div class="login-icon">📊</div>
+        <div class="login-title">Admin</div>
+        <div class="divider-line"></div>
+        <div class="login-desc">Manage menu, tables<br>& view all orders</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function getTableStatus(t){
+  const o=state.orders[t];
+  if(!o) return 'free';
+  if(o.status==='ready') return 'ready';
+  return 'active';
+}
+
+function renderStaff(){
+  const pendingCount=Object.values(state.orders).filter(o=>o.status==='pending').length;
+  return `<div>
+    ${renderTopbar('Staff',pendingCount)}
+    <div class="page-wrap">
+      <div class="page-title">Select a Table</div>
+      <div class="page-sub">Tap table to take or update order</div>
+      <div class="tables-grid">
+        ${TABLES.map(t=>{
+          const st=getTableStatus(t);
+          const o=state.orders[t];
+          const itemCount=o?o.items.reduce((s,i)=>s+i.qty,0):0;
+          return `<div class="table-card ${st==='active'?'has-order':st==='ready'?'ready':''}" data-table="${t}">
+            <div class="table-num">${t}</div>
+            <div class="table-status ${st==='active'?'active':st==='ready'?'ready':''}">${st==='free'?'Available':st==='active'?'Ordered':' Ready'}</div>
+            ${o?`<div class="table-items">${itemCount} item${itemCount!==1?'s':''} · ₹${o.items.reduce((s,i)=>s+i.price*i.qty,0)}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    ${state.orderPanel!==null?renderOrderPanel():''}
+  </div>`;
+}
+
+function renderOrderPanel(){
+  const t=state.orderPanel;
+  const existing=state.orders[t];
+  const cart=state.cartItems;
+  const filteredMenu=state.activeCat==='All'?state.menu:state.menu.filter(i=>i.cat===state.activeCat);
+  const cartArr=Object.values(cart).filter(i=>i.qty>0);
+  const total=cartArr.reduce((s,i)=>s+i.price*i.qty,0);
+  return `<div class="order-panel-overlay" id="panel-overlay">
+    <div class="order-panel">
+      <div class="panel-header">
+        <div class="panel-title">Table ${t}</div>
+        <button class="btn-close" id="close-panel">✕</button>
+      </div>
+      <div class="menu-categories">
+        ${CATS.map(c=>`<button class="cat-btn ${state.activeCat===c?'active':''}" data-cat="${c}">${c}</button>`).join('')}
+      </div>
+      <div class="menu-items">
+        ${filteredMenu.map(item=>{
+          const inCart=cart[item.id];
+          return `<div class="menu-item ${inCart&&inCart.qty>0?'':''}' data-add="${item.id}">
+            <div class="menu-item-cat">${item.cat}</div>
+            <div class="menu-item-name">${item.name}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+              <div class="menu-item-price">₹${item.price}</div>
+              ${inCart&&inCart.qty>0?`<div style="display:flex;align-items:center;gap:6px">
+                <button class="qty-btn" style="width:22px;height:22px;font-size:13px" data-dec="${item.id}">−</button>
+                <span style="font-size:12px;font-weight:500">${inCart.qty}</span>
+                <button class="qty-btn" style="width:22px;height:22px;font-size:13px" data-inc="${item.id}">+</button>
+              </div>`:`<button class="qty-btn" style="width:22px;height:22px;font-size:13px" data-inc="${item.id}">+</button>`}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      ${cartArr.length>0?`<div class="order-list">
+        <div class="order-list-title">Current Order</div>
+        ${cartArr.map(i=>`<div class="order-item-row">
+          <div class="order-item-name">${i.name}</div>
+          <div class="order-item-qty">
+            <button class="qty-btn" data-dec="${i.id}">−</button>
+            <span class="qty-num">${i.qty}</span>
+            <button class="qty-btn" data-inc="${i.id}">+</button>
+            <span style="font-size:12px;color:var(--text3);min-width:50px;text-align:right">₹${i.price*i.qty}</span>
+          </div>
+        </div>`).join('')}
+        <div class="order-total">
+          <div class="order-total-label">Total</div>
+          <div class="order-total-amt">₹${total}</div>
+        </div>
+        <textarea class="note-input" id="cart-note" rows="2" placeholder="Special instructions (optional)…">${state.cartNote}</textarea>
+        <button class="btn-primary" id="submit-order">Send to Kitchen</button>
+        ${existing?`<button style="margin-top:10px;background:transparent;border:0.5px solid var(--red);color:var(--red);padding:10px;border-radius:8px;cursor:pointer;font-size:12px;width:100%;font-family:'DM Sans',sans-serif;transition:all 0.2s" id="clear-table">Clear Table</button>`:''}
+      </div>`:existing?`<div style="padding:16px 0"><button style="background:transparent;border:0.5px solid var(--red);color:var(--red);padding:10px;border-radius:8px;cursor:pointer;font-size:12px;width:100%;font-family:'DM Sans',sans-serif" id="clear-table">Clear Table ${t}</button></div>`:''}
+    </div>
+  </div>`;
+}
+
+function renderKitchen(){
+  const pendingOrders=Object.entries(state.orders).filter(([,o])=>o.status==='pending');
+  const readyOrders=Object.entries(state.orders).filter(([,o])=>o.status==='ready');
+  return `<div>
+    ${renderTopbar('Kitchen',pendingOrders.length)}
+    <div class="page-wrap">
+      <div class="page-title">Kitchen Display</div>
+      <div class="page-sub">Active orders · ${pendingOrders.length} pending</div>
+      ${pendingOrders.length===0&&readyOrders.length===0?`<div class="empty-state"><div class="empty-icon">🍳</div><div class="empty-text">No orders yet. Waiting for the first ticket...</div></div>`:''}
+      ${pendingOrders.length>0?`<div class="section-label" style="margin-bottom:14px">Pending Orders</div>
+      <div class="kitchen-grid">
+        ${pendingOrders.map(([t,o])=>`<div class="kitchen-card">
+          <div class="kitchen-card-header">
+            <div><div class="kitchen-table-num">Table ${t}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${o.time}</div></div>
+            <div class="status-pill pending">Pending</div>
+          </div>
+          ${o.note?`<div class="kitchen-note">Note: ${o.note}</div>`:''}
+          <div class="kitchen-items">
+            ${o.items.map(i=>`<div class="kitchen-item"><div class="kitchen-qty">×${i.qty}</div><div><div class="kitchen-item-name">${i.name}</div><div class="kitchen-item-cat">${i.cat}</div></div></div>`).join('')}
+          </div>
+          <div class="kitchen-footer"><button class="btn-ready" data-ready="${t}">Mark as Ready</button></div>
+        </div>`).join('')}
+      </div>`:''}
+      ${readyOrders.length>0?`<div class="section-label" style="margin-top:28px;margin-bottom:14px">Ready to Serve</div>
+      <div class="kitchen-grid">
+        ${readyOrders.map(([t,o])=>`<div class="kitchen-card" style="opacity:0.6">
+          <div class="kitchen-card-header">
+            <div><div class="kitchen-table-num">Table ${t}</div></div>
+            <div class="status-pill ready">Ready</div>
+          </div>
+          <div class="kitchen-items">
+            ${o.items.map(i=>`<div class="kitchen-item"><div class="kitchen-qty">×${i.qty}</div><div class="kitchen-item-name">${i.name}</div></div>`).join('')}
+          </div>
+        </div>`).join('')}
+      </div>`:''}
+    </div>
+  </div>`;
+}
+
+function renderAdmin(){
+  const allOrders=Object.entries(state.orders);
+  const filtered=state.adminFilter==='all'?allOrders:allOrders.filter(([,o])=>o.status===state.adminFilter);
+  const totalRevenue=Object.values(state.orders).reduce((s,o)=>s+o.items.reduce((ss,i)=>ss+i.price*i.qty,0),0);
+  const pendingCount=Object.values(state.orders).filter(o=>o.status==='pending').length;
+  const readyCount=Object.values(state.orders).filter(o=>o.status==='ready').length;
+  return `<div>
+    ${renderTopbar('Admin',0)}
+    <div class="page-wrap">
+      <div class="page-title">Admin Dashboard</div>
+      <div class="page-sub">Manage menu & view orders</div>
+      <div class="stat-cards">
+        <div class="stat-card"><div class="stat-val">${allOrders.length}</div><div class="stat-lbl">Active Tables</div></div>
+        <div class="stat-card"><div class="stat-val">${pendingCount}</div><div class="stat-lbl">Pending</div></div>
+        <div class="stat-card"><div class="stat-val">${readyCount}</div><div class="stat-lbl">Ready</div></div>
+        <div class="stat-card"><div class="stat-val">₹${totalRevenue.toLocaleString()}</div><div class="stat-lbl">Today's Revenue</div></div>
+      </div>
+      <div class="admin-tabs">
+        <button class="admin-tab ${state.adminTab==='menu'?'active':''}" data-tab="menu">Menu Management</button>
+        <button class="admin-tab ${state.adminTab==='orders'?'active':''}" data-tab="orders">Order Details</button>
+      </div>
+      ${state.adminTab==='menu'?renderAdminMenu():renderAdminOrders(filtered)}
+    </div>
+  </div>`;
+}
+
+function renderAdminMenu(){
+  const grouped={};
+  state.menu.forEach(i=>{if(!grouped[i.cat])grouped[i.cat]=[];grouped[i.cat].push(i);});
+  return `<div>
+    <div class="section-label"><span>Menu Items (${state.menu.length})</span><button class="btn-add" id="toggle-add-form">${state.showAddForm?'Cancel':'+ Add Item'}</button></div>
+    ${state.showAddForm?`<div class="add-item-form">
+      <div class="form-row">
+        <div><label class="form-label">Item Name</label><input class="form-input" id="ni-name" placeholder="e.g. Chicken Biryani" value="${state.newItem.name}"></div>
+        <div><label class="form-label">Price (₹)</label><input class="form-input" id="ni-price" type="number" placeholder="e.g. 450" value="${state.newItem.price}"></div>
+      </div>
+      <div style="margin-bottom:16px"><label class="form-label">Category</label>
+        <select class="form-select" id="ni-cat">
+          ${['Starters','Mains','Sides','Drinks','Desserts'].map(c=>`<option value="${c}" ${state.newItem.cat===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <button class="btn-primary" id="save-item" style="max-width:200px">Save Item</button>
+    </div>`:''}
+    ${Object.entries(grouped).map(([cat,items])=>`<div style="margin-bottom:24px">
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px">${cat}</div>
+      <div class="menu-edit-grid">
+        ${items.map(item=>`<div class="menu-edit-card">
+          <div class="menu-edit-info">
+            <div class="menu-edit-name">${item.name}</div>
+            <div class="menu-edit-meta">₹${item.price} · ${item.cat}</div>
+          </div>
+          <div class="menu-edit-actions">
+            <button class="btn-icon" data-edit-item="${item.id}" title="Edit">✏️</button>
+            <button class="btn-icon danger" data-del-item="${item.id}" title="Delete">🗑️</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderAdminOrders(filtered){
+  return `<div>
+    <div class="filter-bar">
+      <button class="filter-btn ${state.adminFilter==='all'?'active':''}" data-filter="all">All Orders</button>
+      <button class="filter-btn ${state.adminFilter==='pending'?'active':''}" data-filter="pending">Pending</button>
+      <button class="filter-btn ${state.adminFilter==='ready'?'active':''}" data-filter="ready">Ready</button>
+    </div>
+    ${filtered.length===0?`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No orders found.</div></div>`:`
+    <div style="background:var(--dark2);border:0.5px solid var(--border);border-radius:14px;overflow:hidden">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Table</th>
+            <th>Items</th>
+            <th>Status</th>
+            <th>Time</th>
+            <th>Amount</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map(([t,o])=>`<tr>
+            <td style="font-family:'Playfair Display',serif;font-size:16px;color:var(--gold)">Table ${t}</td>
+            <td style="max-width:180px">${o.items.map(i=>`${i.qty}× ${i.name}`).join(', ')}</td>
+            <td><div class="status-pill ${o.status==='ready'?'ready':'pending'}">${o.status}</div></td>
+            <td>${o.time}</td>
+            <td class="amount-text">₹${o.items.reduce((s,i)=>s+i.price*i.qty,0).toLocaleString()}</td>
+            <td><button class="btn-icon danger" data-del-order="${t}" title="Remove">✕</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`}
+  </div>`;
+}
+
+function renderTopbar(role,count){
+  return `<div class="topbar">
+    <div>
+      <div class="topbar-logo">The Grand</div>
+      <div class="topbar-role">${role} Portal</div>
+    </div>
+    <div class="topbar-right">
+      ${count>0?`<div class="badge">${count}</div>`:''}
+      <button class="btn-logout" id="logout">Logout</button>
+    </div>
+  </div>`;
+}
+
+function bindEvents(){
+    // Login click
+document.querySelectorAll('.login-card').forEach(card=>{
+  card.onclick = ()=>{
+    state.role = card.dataset.role;
+    state.page = card.dataset.role; // go to staff/kitchen/admin
+    render();
+  };
+});
+  // Login
+  document.querySelectorAll('[data-del-order]').forEach(el=>{
+  el.onclick=async ()=>{
+    const table = el.dataset.delOrder;
+
+    const order = state.orders[table];
+    if(!order) return;
+
+    await fetch(`http://localhost:5000/orders/${order._id}`, {
+      method:'DELETE'
+    });
+
+    showToast('Order deleted from database');
+    loadOrders(); // refresh data from backend
+  };
+});
+  // Kitchen ready
+  document.querySelectorAll('[data-ready]').forEach(el=>{
+    el.onclick=()=>{
+      const t=el.dataset.ready;
+      if(state.orders[t]) {fetch(`http://localhost:5000/orders/${orderId}`, {
+  method:'PUT',
+  headers:{'Content-Type':'application/json'},
+  body: JSON.stringify({status:'ready'})
+});;showToast('Table '+t+' marked ready!');render();}
+    };
+  });
+  // Admin tabs
+  document.querySelectorAll('[data-tab]').forEach(el=>{
+    el.onclick=()=>{state.adminTab=el.dataset.tab;render()};
+  });
+  // Admin filters
+  document.querySelectorAll('[data-filter]').forEach(el=>{
+    el.onclick=()=>{state.adminFilter=el.dataset.filter;render()};
+  });
+  // Toggle add form
+  const taf=document.getElementById('toggle-add-form');
+  if(taf) taf.onclick=()=>{state.showAddForm=!state.showAddForm;state.newItem={name:'',price:'',cat:'Starters'};render()};
+  // Save item
+  const si=document.getElementById('save-item');
+  if(si) si.onclick=()=>{
+    const name=document.getElementById('ni-name').value.trim();
+    const price=parseInt(document.getElementById('ni-price').value);
+    const cat=document.getElementById('ni-cat').value;
+    if(!name||!price){showToast('Fill in all fields');return;}
+    const newId=Math.max(...state.menu.map(i=>i.id))+1;
+    state.menu.push({id:newId,name,price,cat});
+    state.showAddForm=false;
+    state.newItem={name:'',price:'',cat:'Starters'};
+    showToast('Item added!');
+    render();
+  };
+  // Delete menu item
+  document.querySelectorAll('[data-del-item]').forEach(el=>{
+    el.onclick=()=>{
+      state.menu=state.menu.filter(i=>i.id!==parseInt(el.dataset.delItem));
+      showToast('Item removed');
+      render();
+    };
+  });
+  // Delete order
+  document.querySelectorAll('[data-del-order]').forEach(el=>{
+    el.onclick=()=>{
+      delete state.orders[el.dataset.delOrder];
+      showToast('Order cleared');
+      render();
+    };
+  });
+  // Edit menu item
+  document.querySelectorAll('[data-edit-item]').forEach(el=>{
+    el.onclick=()=>{
+      const item=state.menu.find(i=>i.id===parseInt(el.dataset.editItem));
+      if(!item) return;
+      const newPrice=prompt(`Edit price for "${item.name}" (current: ₹${item.price})`);
+      if(newPrice&&!isNaN(parseInt(newPrice))){
+        item.price=parseInt(newPrice);
+        showToast('Price updated!');
+        render();
+      }
+    };
+  });
+}
+
+function bindPanelEvents(){
+  // Close panel
+  const cp=document.getElementById('close-panel');
+  if(cp) cp.onclick=()=>{state.orderPanel=null;render()};
+  const ov=document.getElementById('panel-overlay');
+  if(ov) ov.onclick=(e)=>{if(e.target===ov){state.orderPanel=null;render()}};
+  // Category filter
+  document.querySelectorAll('[data-cat]').forEach(el=>{
+    el.onclick=()=>{state.activeCat=el.dataset.cat;render()};
+  });
+  // Add to cart
+  document.querySelectorAll('[data-inc]').forEach(el=>{
+    el.onclick=(e)=>{
+      e.stopPropagation();
+      const id=parseInt(el.dataset.inc);
+      const menuItem=state.menu.find(i=>i.id===id);
+      if(!menuItem) return;
+      if(!state.cartItems[id]) state.cartItems[id]={...menuItem,qty:0};
+      state.cartItems[id].qty++;
+      render();
+    };
+  });
+  document.querySelectorAll('[data-dec]').forEach(el=>{
+    el.onclick=(e)=>{
+      e.stopPropagation();
+      const id=parseInt(el.dataset.dec);
+      if(state.cartItems[id]&&state.cartItems[id].qty>0){
+        state.cartItems[id].qty--;
+        if(state.cartItems[id].qty===0) delete state.cartItems[id];
+        render();
+      }
+    };
+  });
+  // Submit order
+  const so=document.getElementById('submit-order');
+  if(so) so.onclick=()=>{
+    const note=document.getElementById('cart-note')?document.getElementById('cart-note').value:'';
+    const cartArr=Object.values(state.cartItems).filter(i=>i.qty>0);
+    if(cartArr.length===0) return;
+    const t=state.orderPanel;
+    const now=new Date();
+    const timeStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    fetch('http://localhost:5000/orders', {
+  method: 'POST',
+  headers: {'Content-Type':'application/json'},
+  body: JSON.stringify({
+    table: t,
+    items: cartArr,
+    status: 'pending',
+    time: timeStr,
+    note: note
+  })
+});
+    state.orderPanel=null;
+    state.cartItems={};
+    showToast('Order sent to kitchen!');
+    render();
+  };
+  // Clear table
+  const ct=document.getElementById('clear-table');
+  if(ct) ct.onclick=()=>{
+    const t=state.orderPanel;
+    delete state.orders[t];
+    state.orderPanel=null;
+    state.cartItems={};
+    showToast('Table '+t+' cleared');
+    render();
+  };
+}
+
+let toastTimer=null;
+function showToast(msg){
+  state.toast=msg;
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{state.toast=null;let t=document.querySelector('.toast');if(t)t.style.opacity='0';},2000);
+}
+function showToastIfAny(){
+  if(state.toast){
+    const t=document.querySelector('.toast');
+    if(!t){
+      const el=document.createElement('div');
+      el.className='toast';
+      el.textContent=state.toast;
+      document.body.appendChild(el);
+    }
+  }
+}
+
+loadOrders();
+setInterval(loadOrders, 3000); // refresh every 3 seconds
+</script>
+</body>
+</html>
